@@ -1,0 +1,7 @@
+Die Softwareentwicklung hat sich in den letzten Jahrzehnten stark verändert. Früher wurden Anwendungen oft monolithisch aufgebaut, das heißt als ein einziges, großes zusammenhängendes System. Heute setzen viele Unternehmen auf Microservices, bei denen einzelne Funktionen als unabhängige, kleinere Dienste entwickelt werden.
+
+Ein wichtiger Bestandteil moderner Entwicklung ist die Versionsverwaltung mit Tools wie Git. Sie ermöglicht es mehreren Personen, gleichzeitig an einem Projekt zu arbeiten, Änderungen nachzuvollziehen und bei Bedarf frühere Zustände wiederherzustellen.
+
+Auch künstliche Intelligenz spielt eine zunehmend größere Rolle in der Softwareentwicklung. Systeme wie Retrieval-Augmented Generation kombinieren klassische Datenbanken mit modernen Sprachmodellen, um präzisere und besser fundierte Antworten zu liefern, statt sich ausschließlich auf das im Modell gespeicherte Wissen zu verlassen.
+
+Docker und Containerisierung haben zudem die Art verändert, wie Software bereitgestellt wird. Anwendungen können in isolierten, reproduzierbaren Umgebungen laufen, unabhängig davon, auf welchem System sie letztendlich ausgeführt werden. Das erleichtert sowohl die Entwicklung als auch das spätere Deployment erheblich.
