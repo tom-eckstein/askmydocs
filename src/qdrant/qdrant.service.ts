@@ -29,6 +29,7 @@ export class QdrantService {
     collectionName: string,
     text: string,
     vector: number[],
+    sourceFile: string,
   ): Promise<Schemas['UpdateResult']> {
     const savedPoint = await this.client.upsert(collectionName, {
       points: [
@@ -37,6 +38,7 @@ export class QdrantService {
           vector,
           payload: {
             text,
+            sourceFile,
           },
         },
       ],
