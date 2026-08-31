@@ -11,7 +11,7 @@ export class IngestionController {
 
   @Get('/test')
   public async testIngestion() {
-    const filePath = this.configService.get<string>('Test_FILE_PATH');
+    const filePath = this.configService.get<string>('TEST_FILE_PATH');
     if (!filePath) {
       throw new Error('TEST_FILE_PATH is not defined in environment variables');
     }

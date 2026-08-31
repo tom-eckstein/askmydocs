@@ -11,7 +11,7 @@ export class DocumentsController {
 
   @Get()
   async getFileText(): Promise<string[]> {
-    const filePath = this.configService.get<string>('Test_FILE_PATH');
+    const filePath = this.configService.get<string>('TEST_FILE_PATH');
     if (!filePath) {
       throw new Error('TEST_FILE_PATH is not defined in environment variables');
     }
