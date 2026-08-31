@@ -9,6 +9,7 @@ import {
 import { Response } from 'express';
 import { ErrorResponse } from '../interfaces/error-response.interface';
 import { formatEnumName } from '../utils/format-enum-name.util';
+import { ZodError } from 'zod';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -23,7 +24,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let error: string;
     let details: unknown;
 
-    if (exception instanceof HttpException) {
+    if (exception instanceof TypeError) {
+      this.logger.error(exception.message, exception.stack);
+      statusCode = HttpStatus.BAD_GATEWAY;
+      message =
+        'Connection to the partner service failed. Please try again later.';
+      error = formatEnumName(HttpStatus[statusCode]);
+    } else if (exception instanceof ZodError) {
+      this.logger.error(exception.message, exception.stack);
+      statusCode = HttpStatus.BAD_REQUEST;
+      message = 'Validation failed';
+      error = formatEnumName(HttpStatus[statusCode]);
+      details = exception.issues.map((el) => ({
+        field: el.path[0],
+        message: el.message,
+      }));
+    } else if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
       message = exception.message;
       error = formatEnumName(HttpStatus[statusCode]);
@@ -44,7 +60,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message,
       error,
     };
-    if (details !== null) {
+    if (details !== undefined) {
       responseBody.details = details;
     }
 

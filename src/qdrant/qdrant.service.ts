@@ -1,12 +1,6 @@
-import {
-  BadGatewayException,
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { QdrantClient } from '@qdrant/js-client-rest';
+import { QdrantClient, Schemas } from '@qdrant/js-client-rest';
 
 @Injectable()
 export class QdrantService {
@@ -23,34 +17,30 @@ export class QdrantService {
   }
 
   public async createCollection(collectionName: string): Promise<void> {
-    try {
-      await this.client.createCollection(collectionName, {
-        vectors: {
-          size: 768,
-          distance: 'Cosine',
+    await this.client.createCollection(collectionName, {
+      vectors: {
+        size: 768,
+        distance: 'Cosine',
+      },
+    });
+  }
+
+  public async savePoint(
+    collectionName: string,
+    text: string,
+    vector: number[],
+  ): Promise<Schemas['UpdateResult']> {
+    const savedPoint = await this.client.upsert(collectionName, {
+      points: [
+        {
+          id: crypto.randomUUID(),
+          vector,
+          payload: {
+            text,
+          },
         },
-      });
-    } catch (error) {
-      if (error instanceof TypeError) {
-        this.logger.error(error.message, error?.stack);
-        throw new BadGatewayException({
-          statusCode: HttpStatus.BAD_GATEWAY,
-          message:
-            'Connection to the partner service failed. Please try again later.',
-        });
-      } else if (error instanceof Error) {
-        this.logger.error(error.message, error.stack);
-        throw new InternalServerErrorException({
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Internal Server Error',
-        });
-      } else {
-        this.logger.error('An unknown error occurred', String(error));
-        throw new InternalServerErrorException({
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Internal Server Error',
-        });
-      }
-    }
+      ],
+    });
+    return savedPoint;
   }
 }
