@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QdrantClient, Schemas } from '@qdrant/js-client-rest';
+import { ChunkToSave } from './types/chunk-to-save.interface';
 
 @Injectable()
 export class QdrantService {
@@ -44,6 +45,28 @@ export class QdrantService {
       ],
     });
     return savedPoint;
+  }
+
+  public async savePoints(
+    collectionName: string,
+    chunks: ChunkToSave[],
+  ): Promise<Schemas['UpdateResult']> {
+    const pointObjects = chunks.map((el) => {
+      return {
+        id: crypto.randomUUID(),
+        vector: el.vector,
+        payload: {
+          text: el.text,
+          sourceFile: el.sourceFile,
+        },
+      };
+    });
+
+    const savedPoints = await this.client.upsert(collectionName, {
+      points: pointObjects,
+    });
+
+    return savedPoints;
   }
 
   public async findSimiliarChunks(

@@ -17,20 +17,24 @@ export class OllamaService {
       'Content-Type': 'application/json',
     };
 
-    const rawResponse = await fetch('http://localhost:11434/api/embed', {
+    const httpResponse = await fetch('http://localhost:11434/api/embed', {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
     });
 
-    const rawJson: unknown = await rawResponse.json();
-    if (typeof rawJson === 'object' && rawJson !== null && 'error' in rawJson) {
-      throw new Error(`Ollama error: ${String(rawJson.error)}`);
+    const parsedBody: unknown = await httpResponse.json();
+    if (
+      typeof parsedBody === 'object' &&
+      parsedBody !== null &&
+      'error' in parsedBody
+    ) {
+      throw new Error(`Ollama error: ${String(parsedBody.error)}`);
     }
 
-    const jsonResponse = OllamaEmbedResponseSchema.parse(rawJson);
+    const embedResponse = OllamaEmbedResponseSchema.parse(parsedBody);
 
-    return jsonResponse.embeddings;
+    return embedResponse.embeddings;
   }
 
   public async generateAnswer(prompt: string): Promise<OllamaChatResponse> {
@@ -44,17 +48,23 @@ export class OllamaService {
       'Content-Type': 'application/json',
     };
 
-    const rawResponse = await fetch('http://localhost:11434/api/chat', {
+    const httpResponse = await fetch('http://localhost:11434/api/chat', {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
     });
-    const rawJson: unknown = await rawResponse.json();
-    if (typeof rawJson === 'object' && rawJson !== null && 'error' in rawJson) {
-      throw new Error(`Ollama error: ${String(rawJson.error)}`);
-    }
-    const jsonResponse = OllamaChatResponseSchema.parse(rawJson);
 
-    return jsonResponse;
+    const parsedBody: unknown = await httpResponse.json();
+
+    if (
+      typeof parsedBody === 'object' &&
+      parsedBody !== null &&
+      'error' in parsedBody
+    ) {
+      throw new Error(`Ollama error: ${String(parsedBody.error)}`);
+    }
+    const chatResponse = OllamaChatResponseSchema.parse(parsedBody);
+
+    return chatResponse;
   }
 }
