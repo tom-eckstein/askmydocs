@@ -6,9 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import { OllamaModule } from './ollama/ollama.module';
 import { QdrantModule } from './qdrant/qdrant.module';
 import { IngestionModule } from './ingestion/ingestion.module';
+import { QueryModule } from './query/query.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DocumentsModule, OllamaModule, QdrantModule, IngestionModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DocumentsModule, OllamaModule, QdrantModule, IngestionModule, QueryModule],
   controllers: [AppController],
   providers: [AppService],
 })

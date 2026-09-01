@@ -45,4 +45,17 @@ export class QdrantService {
     });
     return savedPoint;
   }
+
+  public async findSimiliarChunks(
+    collectionName: string,
+    vector: number[],
+    limit: number = 5,
+  ): Promise<Schemas['QueryResponse']> {
+    const vectors = await this.client.query(collectionName, {
+      query: vector,
+      limit,
+      with_payload: true,
+    });
+    return vectors;
+  }
 }
