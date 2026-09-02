@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { readFile } from 'fs/promises';
+import { detectFileType } from './util/detect-file-type.util';
 
 @Injectable()
 export class DocumentsService {
@@ -150,5 +151,34 @@ export class DocumentsService {
   public async readAndChunkFile(filePath: string): Promise<string[]> {
     const textOfFile = await this.getFileText(filePath);
     return this.chunkText(textOfFile);
+  }
+
+  public async extractTextFromBuffer(
+    buffer: Buffer,
+    fileName: string,
+  ): Promise<string> {
+    const fileType = await detectFileType(buffer);
+
+    switch (fileType?.ext) {
+      case 'pdf':
+        // return extractfromPDF
+        break;
+      case 'docx':
+        // return extractFromWord
+        break;
+      case 'xlsx':
+        // return extractFromExcel
+        break;
+      case 'txt':
+        // return extractFromTextDocument
+        break;
+      case 'md':
+        // return extractFromMdDocument
+        break;
+      default:
+        throw new BadRequestException(
+          `${fileName} is not a supported file type`,
+        );
+    }
   }
 }
