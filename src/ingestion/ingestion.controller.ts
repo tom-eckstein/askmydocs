@@ -6,7 +6,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { IngestionService } from './ingestion.service';
-import { ConfigService } from '@nestjs/config';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadFilesDTO } from './dto/upload-files.dto';
 import {
@@ -16,10 +15,7 @@ import {
 
 @Controller('ingestion')
 export class IngestionController {
-  constructor(
-    private readonly ingestionsService: IngestionService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly ingestionsService: IngestionService) {}
 
   @Post('/upload')
   @UseInterceptors(
