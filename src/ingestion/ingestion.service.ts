@@ -14,6 +14,7 @@ export class IngestionService {
 
   public async ingestFiles(
     files: Express.Multer.File[],
+    includesHeaders?: boolean,
   ): Promise<{ message: string; totalFiles: number; totalChunks: number }> {
     let totalChunks = 0;
 
@@ -22,6 +23,7 @@ export class IngestionService {
         const text = await this.documentsService.extractTextFromBuffer(
           file.buffer,
           file.originalname,
+          includesHeaders,
         );
         const chunks = this.documentsService.chunkText(text);
 

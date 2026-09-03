@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Post,
   UploadedFiles,
@@ -7,6 +8,7 @@ import {
 import { IngestionService } from './ingestion.service';
 import { ConfigService } from '@nestjs/config';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { UploadFilesDto } from './dto/upload-files.dto';
 
 @Controller('ingestion')
 export class IngestionController {
@@ -18,11 +20,9 @@ export class IngestionController {
   @Post('/upload')
   @UseInterceptors(FilesInterceptor('files'))
   ingestFiles(
-    @UploadedFiles() files: Express.Multer.File[]
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() dto: UploadFilesDto,
   ) {
-    console.log(files);
-    return {
-      receivedFiles: files.map((f) => f.originalname),
-    };
+    return this.ingestionsService.ingestFiles(files, dto.includesHeaders);
   }
 }
