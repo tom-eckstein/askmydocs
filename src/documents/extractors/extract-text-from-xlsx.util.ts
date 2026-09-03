@@ -1,5 +1,5 @@
 import { BadRequestException, Logger } from '@nestjs/common';
-import * as XLSX from 'xlsx';
+import { Workbook } from 'exceljs';
 
 const logger = new Logger('XlsxExtractor');
 
@@ -8,18 +8,42 @@ const logger = new Logger('XlsxExtractor');
  * @param buffer The raw XLSX file buffer
  * @returns The extracted text content, formatted per sheet and row
  */
-export const extractTextFromXlsx = (buffer: Buffer): string => {
+export const extractTextFromXlsx = async (
+  buffer: Buffer,
+  includesHeaders: boolean = true,
+): Promise<string> => {
   try {
-    const workbook = XLSX.read(buffer);
-    const sheetTexts = workbook.SheetNames.map((sheetName) => {
-      const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-      const rows = rawRows.map((row: Record<string, unknown>) =>
-        Object.entries(row)
-          .map(([key, value]) => `${key}: ${String(value)}`)
-          .join(', '),
-      );
-      return `Sheet: ${sheetName}\n${rows.join('\n')}`;
+    const workbook = new Workbook();
+    // ExcelJS's type definitions haven't been updated for newer TypeScript Buffer generics (see: https://github.com/exceljs/exceljs/issues/2877).
+    // This is a known, unresolved upstream typing bug — the runtime behavior is correct, only the type declaration is wrong.
+    // eslint-disable-next-line
+    await workbook.xlsx.load(buffer as any);
+
+    const sheetTexts: string[] = [];
+    workbook.eachSheet((worksheet) => {
+      let headers: string[] = [];
+      const rowTexts: string[] = [];
+
+      worksheet.eachRow((row, rowNumber) => {
+        const values = (row.values as unknown[])
+          .slice(1)
+          .map((value) => String(value));
+
+        if (rowNumber === 1 && includesHeaders === true) {
+          headers = values;
+        } else {
+          const rowText = values
+            .map(
+              (value, index) =>
+                `${headers.length !== 0 ? headers[index] : `Spalte ${index + 1}`}: ${value}`,
+            )
+            .join(', ');
+          rowTexts.push(rowText);
+        }
+      });
+      sheetTexts.push(`Sheet: ${worksheet.name}\n${rowTexts.join('\n')}`);
     });
+
     return sheetTexts.join('\n\n');
   } catch (error) {
     logger.error(

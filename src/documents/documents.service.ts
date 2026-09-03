@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { readFile } from 'fs/promises';
 import { detectFileType } from './util/detect-file-type.util';
 import { extractTextFromPdf } from './extractors/extract-text-from-pdf.util';
 import { extractTextFromTxt } from './extractors/extract-text-from-txt.util';
 import { extractTextFromDocx } from './extractors/extract-text-from-docx.util';
+import { extractTextFromXlsx } from './extractors/extract-text-from-xlsx.util';
 
 @Injectable()
 export class DocumentsService {
@@ -139,6 +139,7 @@ export class DocumentsService {
   public async extractTextFromBuffer(
     buffer: Buffer,
     fileName: string,
+    includesHeaders?: boolean,
   ): Promise<string> {
     const fileType = await detectFileType(buffer);
 
@@ -148,8 +149,7 @@ export class DocumentsService {
       case 'docx':
         return await extractTextFromDocx(buffer);
       case 'xlsx':
-        // return extractFromExcel
-        break;
+        return await extractTextFromXlsx(buffer, includesHeaders);
       case 'txt':
         return extractTextFromTxt(buffer);
       case 'md':
