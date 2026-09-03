@@ -30,8 +30,16 @@ export class IngestionService {
         let chunks: string[];
         if (extractedContent.type === 'text') {
           chunks = this.documentsService.chunkText(extractedContent.content);
-        } else {
+        } else if (extractedContent.type === 'tabular') {
           chunks = this.documentsService.chunkRows(extractedContent.content);
+        } else {
+          const textChunks = this.documentsService.chunkText(
+            extractedContent.text,
+          );
+          const rowChunks = this.documentsService.chunkRows(
+            extractedContent.rows,
+          );
+          chunks = [...textChunks, ...rowChunks];
         }
 
         const chunksToSave: ChunkToSave[] = await Promise.all(
