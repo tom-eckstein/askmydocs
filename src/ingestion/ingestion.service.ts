@@ -12,29 +12,39 @@ export class IngestionService {
     private readonly qdrantService: QdrantService,
   ) {}
 
-  public async ingestFile(
-    filePath: string,
-    collectionName: string,
-  ): Promise<{ totalChunks: number; message: string }> {
-    const textChunks = await this.documentsService.readAndChunkFile(filePath);
+  public async ingestFiles(
+    files: Express.Multer.File[],
+  ): Promise<{ message: string; totalFiles: number; totalChunks: number }> {
+    let totalChunks = 0;
 
-    const chunksToSave: ChunkToSave[] = await Promise.all(
-      textChunks.map(async (chunk) => {
-        const vector = await this.ollamaService.textToVector(chunk);
-        const chunkToSave = {
-          text: chunk,
-          vector: vector[0],
-          sourceFile: filePath,
-        };
-        return chunkToSave;
+    await Promise.all(
+      files.map(async (file) => {
+        const text = await this.documentsService.extractTextFromBuffer(
+          file.buffer,
+          file.originalname,
+        );
+        const chunks = this.documentsService.chunkText(text);
+
+        const chunksToSave: ChunkToSave[] = await Promise.all(
+          chunks.map(async (chunk) => {
+            const vector = await this.ollamaService.textToVector(chunk);
+            return {
+              text: chunk,
+              vector: vector[0],
+              sourceFile: file.originalname,
+            };
+          }),
+        );
+
+        await this.qdrantService.savePoints(chunksToSave);
+        totalChunks += chunks.length;
       }),
     );
 
-    await this.qdrantService.savePoints(collectionName, chunksToSave);
-
     return {
-      message: 'File successfully ingested',
-      totalChunks: textChunks.length,
+      message: 'Files successfully ingested',
+      totalFiles: files.length,
+      totalChunks,
     };
   }
 }

@@ -1,22 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 import { detectFileType } from './util/detect-file-type.util';
+import { extractTextFromPdf } from './extractors/extract-text-from-pdf.util';
+import { extractTextFromTxt } from './extractors/extract-text-from-txt.util';
+import { extractTextFromDocx } from './extractors/extract-text-from-docx.util';
 
 @Injectable()
 export class DocumentsService {
   // Tolerance Values which may need to be adjusted based on search quality
   private readonly MIN_CHUNK_RATIO = 0.5;
   private readonly MAX_OVERSHOOT_RATIO = 0.2;
-
-  /**
-   * Extract the text of a file
-   * @param filePath The path of the file, the text should be extracted from
-   * @returns The specified file text
-   */
-  private async getFileText(filePath: string): Promise<string> {
-    const fileText = await readFile(filePath, { encoding: 'utf8' });
-    return fileText;
-  }
 
   /**
    * Finds a fitting cut within a text, so no words are cut off, except they exceed the specified tolerance
@@ -105,7 +98,7 @@ export class DocumentsService {
    * into the next one
    * @returns The text param splitted into formatted chunks.
    */
-  private chunkText(
+  public chunkText(
     text: string,
     chunkSize: number = 500,
     overlapSize: number = 50,
@@ -143,16 +136,6 @@ export class DocumentsService {
     return textChunks;
   }
 
-  /**
-   * Reads the text out of a file and turns it into chunks
-   * @param filePath Path of the file for text extraction
-   * @returns An array of chunked texts
-   */
-  public async readAndChunkFile(filePath: string): Promise<string[]> {
-    const textOfFile = await this.getFileText(filePath);
-    return this.chunkText(textOfFile);
-  }
-
   public async extractTextFromBuffer(
     buffer: Buffer,
     fileName: string,
@@ -161,20 +144,16 @@ export class DocumentsService {
 
     switch (fileType?.ext) {
       case 'pdf':
-        // return extractfromPDF
-        break;
+        return await extractTextFromPdf(buffer);
       case 'docx':
-        // return extractFromWord
-        break;
+        return await extractTextFromDocx(buffer);
       case 'xlsx':
         // return extractFromExcel
         break;
       case 'txt':
-        // return extractFromTextDocument
-        break;
+        return extractTextFromTxt(buffer);
       case 'md':
-        // return extractFromMdDocument
-        break;
+        return extractTextFromTxt(buffer);
       default:
         throw new BadRequestException(
           `${fileName} is not a supported file type`,

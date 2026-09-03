@@ -17,7 +17,9 @@ export class IngestionController {
 
   @Post('/upload')
   @UseInterceptors(FilesInterceptor('files'))
-  uploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
+  ingestFiles(
+    @UploadedFiles() files: Express.Multer.File[]
+  ) {
     console.log(files);
     return {
       receivedFiles: files.map((f) => f.originalname),
