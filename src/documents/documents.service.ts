@@ -4,6 +4,7 @@ import { extractTextFromPdf } from './extractors/extract-text-from-pdf.util';
 import { extractTextFromTxt } from './extractors/extract-text-from-txt.util';
 import { extractTextFromDocx } from './extractors/extract-text-from-docx.util';
 import { extractTextFromXlsx } from './extractors/extract-text-from-xlsx.util';
+import { extractTextFromCsv } from './extractors/extract-text-from-csv.util';
 
 @Injectable()
 export class DocumentsService {
@@ -150,6 +151,8 @@ export class DocumentsService {
         return await extractTextFromDocx(buffer);
       case 'xlsx':
         return await extractTextFromXlsx(buffer, includesHeaders);
+      case 'csv':
+        return await extractTextFromCsv(buffer, includesHeaders);
       case 'txt':
         return extractTextFromTxt(buffer);
       case 'md':
