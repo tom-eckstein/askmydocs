@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QdrantClient, Schemas } from '@qdrant/js-client-rest';
 import { ChunkToSave } from './types/chunk-to-save.interface';
+import { DOCUMENTS_COLLECTION_NAME } from 'src/common/constants/qdrant.constants';
 
 @Injectable()
-export class QdrantService {
+export class QdrantService implements OnModuleInit {
   private readonly client: QdrantClient;
   private readonly logger = new Logger(QdrantService.name);
 
@@ -17,8 +18,18 @@ export class QdrantService {
     this.client = new QdrantClient({ url: qdrantUrl });
   }
 
-  public async createCollection(collectionName: string): Promise<void> {
-    await this.client.createCollection(collectionName, {
+  async onModuleInit(): Promise<void> {
+    const collectionExists = await this.client.collectionExists(
+      DOCUMENTS_COLLECTION_NAME,
+    );
+
+    if (!collectionExists) {
+      await this.createCollection();
+    }
+  }
+
+  public async createCollection(): Promise<void> {
+    await this.client.createCollection(DOCUMENTS_COLLECTION_NAME, {
       vectors: {
         size: 768,
         distance: 'Cosine',
@@ -26,29 +37,7 @@ export class QdrantService {
     });
   }
 
-  public async savePoint(
-    collectionName: string,
-    text: string,
-    vector: number[],
-    sourceFile: string,
-  ): Promise<Schemas['UpdateResult']> {
-    const savedPoint = await this.client.upsert(collectionName, {
-      points: [
-        {
-          id: crypto.randomUUID(),
-          vector,
-          payload: {
-            text,
-            sourceFile,
-          },
-        },
-      ],
-    });
-    return savedPoint;
-  }
-
   public async savePoints(
-    collectionName: string,
     chunks: ChunkToSave[],
   ): Promise<Schemas['UpdateResult']> {
     const pointObjects = chunks.map((el) => {
@@ -62,7 +51,7 @@ export class QdrantService {
       };
     });
 
-    const savedPoints = await this.client.upsert(collectionName, {
+    const savedPoints = await this.client.upsert(DOCUMENTS_COLLECTION_NAME, {
       points: pointObjects,
     });
 
@@ -70,11 +59,10 @@ export class QdrantService {
   }
 
   public async findSimiliarChunks(
-    collectionName: string,
     vector: number[],
     limit: number = 5,
   ): Promise<Schemas['QueryResponse']> {
-    const vectors = await this.client.query(collectionName, {
+    const vectors = await this.client.query(DOCUMENTS_COLLECTION_NAME, {
       query: vector,
       limit,
       with_payload: true,

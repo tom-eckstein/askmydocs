@@ -7,6 +7,6 @@ export class QueryController {
 
   @Get('/test')
   public async queryRag() {
-    return await this.queryService.askQuestion('Was ist Docker?', 'test');
+    return await this.queryService.askQuestion('Was ist Docker?');
   }
 }

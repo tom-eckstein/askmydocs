@@ -13,11 +13,9 @@ export class QueryService {
 
   public async findRelevantChunks(
     question: string,
-    collectionName: string,
   ): Promise<Schemas['QueryResponse']> {
     const questionVector = await this.ollamaService.textToVector(question);
     const foundVectors = await this.qdrantService.findSimiliarChunks(
-      collectionName,
       questionVector[0],
     );
     return foundVectors;
@@ -32,14 +30,8 @@ export class QueryService {
     return text.join('');
   }
 
-  public async askQuestion(
-    question: string,
-    collectionName: string,
-  ): Promise<string> {
-    const relevantPoints = await this.findRelevantChunks(
-      question,
-      collectionName,
-    );
+  public async askQuestion(question: string): Promise<string> {
+    const relevantPoints = await this.findRelevantChunks(question);
     const formattedTexts = this.formatContext(relevantPoints.points);
     const askingPrompt = `Du bist ein hilfreicher Assistent, der Fragen basierend auf bereitgestellten Dokumentenausschnitten beantwortet.
 
