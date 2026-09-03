@@ -20,12 +20,19 @@ export class IngestionService {
 
     await Promise.all(
       files.map(async (file) => {
-        const text = await this.documentsService.extractTextFromBuffer(
-          file.buffer,
-          file.originalname,
-          includesHeaders,
-        );
-        const chunks = this.documentsService.chunkText(text);
+        const extractedContent =
+          await this.documentsService.extractTextFromBuffer(
+            file.buffer,
+            file.originalname,
+            includesHeaders,
+          );
+
+        let chunks: string[];
+        if (extractedContent.type === 'text') {
+          chunks = this.documentsService.chunkText(extractedContent.content);
+        } else {
+          chunks = this.documentsService.chunkRows(extractedContent.content);
+        }
 
         const chunksToSave: ChunkToSave[] = await Promise.all(
           chunks.map(async (chunk) => {

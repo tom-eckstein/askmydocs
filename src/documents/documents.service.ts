@@ -5,6 +5,7 @@ import { extractTextFromTxt } from './extractors/extract-text-from-txt.util';
 import { extractTextFromDocx } from './extractors/extract-text-from-docx.util';
 import { extractTextFromXlsx } from './extractors/extract-text-from-xlsx.util';
 import { extractTextFromCsv } from './extractors/extract-text-from-csv.util';
+import { ExtractedContent } from './types/extracted-content.interface';
 
 @Injectable()
 export class DocumentsService {
@@ -137,11 +138,30 @@ export class DocumentsService {
     return textChunks;
   }
 
+  /**
+   * Groups an array of rows into chunks of a fixed number of rows each,
+   * ensuring individual rows are never split across chunks.
+   * @param rows The individual row texts to group
+   * @param rowsPerChunk How many rows should be combined into one chunk
+   * @returns An array of chunked text, each containing multiple joined rows
+   */
+  public chunkRows(rows: string[], rowsPerChunk: number = 10): string[] {
+    const rowChunks: string[] = [];
+
+    for (let i = 0; i < rows.length; i += rowsPerChunk) {
+      const group = rows.slice(i, i + rowsPerChunk);
+      // "group" enthält jetzt z.B. Elemente 0-9, dann beim nächsten Durchlauf 10-19, usw.
+      rowChunks.push(group.join('\n'));
+    }
+
+    return rowChunks;
+  }
+
   public async extractTextFromBuffer(
     buffer: Buffer,
     fileName: string,
     includesHeaders?: boolean,
-  ): Promise<string> {
+  ): Promise<ExtractedContent> {
     const fileType = await detectFileType(buffer);
 
     switch (fileType?.ext) {

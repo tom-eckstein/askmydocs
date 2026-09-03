@@ -1,6 +1,7 @@
 import { BadRequestException, Logger } from '@nestjs/common';
 import { Workbook } from 'exceljs';
 import { Readable } from 'stream';
+import { ExtractedContent } from '../types/extracted-content.interface';
 
 const logger = new Logger('CsvExtractor');
 
@@ -13,7 +14,7 @@ const logger = new Logger('CsvExtractor');
 export const extractTextFromCsv = async (
   buffer: Buffer,
   includesHeaders: boolean = true,
-): Promise<string> => {
+): Promise<ExtractedContent> => {
   try {
     const workbook = new Workbook();
     const stream = Readable.from(buffer);
@@ -40,9 +41,7 @@ export const extractTextFromCsv = async (
       }
     });
 
-    const sheetText = rowTexts.join('\n');
-
-    return sheetText;
+    return { type: 'tabular', content: rowTexts };
   } catch (error) {
     logger.error(
       'Failed to parse Csv file',

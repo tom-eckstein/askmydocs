@@ -1,5 +1,6 @@
 import { BadRequestException, Logger } from '@nestjs/common';
 import { Workbook } from 'exceljs';
+import { ExtractedContent } from '../types/extracted-content.interface';
 
 const logger = new Logger('XlsxExtractor');
 
@@ -11,7 +12,7 @@ const logger = new Logger('XlsxExtractor');
 export const extractTextFromXlsx = async (
   buffer: Buffer,
   includesHeaders: boolean = true,
-): Promise<string> => {
+): Promise<ExtractedContent> => {
   try {
     const workbook = new Workbook();
     // ExcelJS's type definitions haven't been updated for newer TypeScript Buffer generics (see: https://github.com/exceljs/exceljs/issues/2877).
@@ -19,10 +20,9 @@ export const extractTextFromXlsx = async (
     // eslint-disable-next-line
     await workbook.xlsx.load(buffer as any);
 
-    const sheetTexts: string[] = [];
+    const allRowTexts: string[] = [];
     workbook.eachSheet((worksheet) => {
       let headers: string[] = [];
-      const rowTexts: string[] = [];
 
       worksheet.eachRow((row, rowNumber) => {
         const values = (row.values as unknown[])
@@ -32,19 +32,18 @@ export const extractTextFromXlsx = async (
         if (rowNumber === 1 && includesHeaders === true) {
           headers = values;
         } else {
-          const rowText = values
+          const rowText = `[${worksheet.name}] ${values
             .map(
               (value, index) =>
                 `${headers.length !== 0 ? headers[index] : `Spalte ${index + 1}`}: ${value}`,
             )
-            .join(', ');
-          rowTexts.push(rowText);
+            .join(', ')}`;
+          allRowTexts.push(rowText);
         }
       });
-      sheetTexts.push(`Sheet: ${worksheet.name}\n${rowTexts.join('\n')}`);
     });
 
-    return sheetTexts.join('\n\n');
+    return { type: 'tabular', content: allRowTexts };
   } catch (error) {
     logger.error(
       'Failed to parse Excel file',

@@ -1,5 +1,6 @@
 import { BadRequestException, Logger } from '@nestjs/common';
 import { PDFParse } from 'pdf-parse';
+import { ExtractedContent } from '../types/extracted-content.interface';
 
 const logger = new Logger('PdfExtractor');
 
@@ -8,11 +9,13 @@ const logger = new Logger('PdfExtractor');
  * @param buffer The raw PDF file buffer
  * @returns The extracted text content
  */
-export const extractTextFromPdf = async (buffer: Buffer): Promise<string> => {
+export const extractTextFromPdf = async (
+  buffer: Buffer,
+): Promise<ExtractedContent> => {
   const parser = new PDFParse({ data: buffer });
   try {
     const result = await parser.getText();
-    return result.text;
+    return { type: 'text', content: result.text };
   } catch (error) {
     logger.error(
       'Failed to parse PDF',
