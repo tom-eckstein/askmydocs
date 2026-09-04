@@ -23,7 +23,7 @@ export class QdrantService implements OnModuleInit {
       DOCUMENTS_COLLECTION_NAME,
     );
 
-    if (!collectionExists) {
+    if (!collectionExists.exists) {
       await this.createCollection();
     }
   }
@@ -67,6 +67,7 @@ export class QdrantService implements OnModuleInit {
       limit,
       with_payload: true,
     });
+    console.log(JSON.stringify(vectors, null, 2));
     return vectors;
   }
 }
