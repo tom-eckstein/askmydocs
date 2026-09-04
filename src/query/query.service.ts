@@ -25,7 +25,7 @@ export class QueryService {
   private formatContext(chunks: Schemas['ScoredPoint'][]): string {
     const text = chunks.map((el, index) => {
       const payload = QdrantPayloadSchema.parse(el.payload);
-      return `--- Datensatz ${index + 1} (Quelle: ${payload.sourceFile}) ---\n${payload.text}\n--- Ende Datensatz ${index + 1} ---`;
+      return `--- Ausschnitt ${index + 1} (Quelle: ${payload.sourceFile}) ---\n${payload.text}\n--- Ende Ausschnitt ${index + 1} ---`;
     });
 
     return text.join('\n\n');
