@@ -7,9 +7,10 @@ import { OllamaModule } from './ollama/ollama.module';
 import { QdrantModule } from './qdrant/qdrant.module';
 import { IngestionModule } from './ingestion/ingestion.module';
 import { QueryModule } from './query/query.module';
+import { GeminiModule } from './gemini/gemini.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DocumentsModule, OllamaModule, QdrantModule, IngestionModule, QueryModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DocumentsModule, OllamaModule, QdrantModule, IngestionModule, QueryModule, GeminiModule],
   controllers: [AppController],
   providers: [AppService],
 })
