@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OllamaEmbedResponseSchema } from './types/ollama-embed-response.schema';
-import {
-  OllamaChatResponse,
-  OllamaChatResponseSchema,
-} from './types/ollama-chat-response.schema';
+import { OllamaChatResponseSchema } from './types/ollama-chat-response.schema';
 
 @Injectable()
 export class OllamaService {
@@ -37,7 +34,7 @@ export class OllamaService {
     return embedResponse.embeddings;
   }
 
-  public async generateAnswer(prompt: string): Promise<OllamaChatResponse> {
+  public async generateAnswer(prompt: string): Promise<string> {
     const requestBody = {
       model: 'llama3.1:8b',
       messages: [{ role: 'user', content: prompt }],
@@ -65,6 +62,6 @@ export class OllamaService {
     }
     const chatResponse = OllamaChatResponseSchema.parse(parsedBody);
 
-    return chatResponse;
+    return chatResponse.message.content;
   }
 }
