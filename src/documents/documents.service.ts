@@ -139,19 +139,34 @@ export class DocumentsService {
   }
 
   /**
-   * Groups an array of rows into chunks of a fixed number of rows each,
-   * ensuring individual rows are never split across chunks.
+   * Groups an array of rows into chunks based on a maximum character size,
+   * ensuring individual rows are never split across chunks. If a single row
+   * exceeds maxChunkSize on its own, it still becomes its own complete chunk.
    * @param rows The individual row texts to group
-   * @param rowsPerChunk How many rows should be combined into one chunk
-   * @returns An array of chunked text, each containing multiple joined rows
+   * @param maxChunkSize The approximate maximum number of characters per chunk
+   * @returns An array of chunked text, each containing one or more complete rows
    */
-  public chunkRows(rows: string[], rowsPerChunk: number = 10): string[] {
+  public chunkRows(rows: string[], maxChunkSize: number = 1500): string[] {
     const rowChunks: string[] = [];
+    let currentChunkRows: string[] = [];
+    let currentChunkSize = 0;
 
-    for (let i = 0; i < rows.length; i += rowsPerChunk) {
-      const group = rows.slice(i, i + rowsPerChunk);
-      // "group" enthält jetzt z.B. Elemente 0-9, dann beim nächsten Durchlauf 10-19, usw.
-      rowChunks.push(group.join('\n'));
+    for (const row of rows) {
+      if (
+        currentChunkSize + row.length > maxChunkSize &&
+        currentChunkRows.length > 0
+      ) {
+        rowChunks.push(currentChunkRows.join('\n'));
+        currentChunkRows = [];
+        currentChunkSize = 0;
+      }
+
+      currentChunkRows.push(row);
+      currentChunkSize += row.length;
+    }
+
+    if (currentChunkRows.length > 0) {
+      rowChunks.push(currentChunkRows.join('\n'));
     }
 
     return rowChunks;
